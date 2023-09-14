@@ -1,31 +1,54 @@
-# Streamlitライブラリをインポート
 import streamlit as st
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
 
-# ページ設定（タブに表示されるタイトル、表示幅）
-st.set_page_config(page_title="タイトル", layout="wide")
+# Streamlitアプリのタイトル
+st.title("衛星の軌道計算アプリ")
 
-# タイトルを設定
-st.title('Streamlitのサンプルアプリ')
+# 衛星の初期位置（x, y, z） [m]
+initial_position_x = st.number_input("初期X座標 [m]", value=700000)
+initial_position_y = st.number_input("初期Y座標 [m]", value=0)
+initial_position_z = st.number_input("初期Z座標 [m]", value=0)
 
-# テキスト入力ボックスを作成し、ユーザーからの入力を受け取る
-user_input = st.text_input('あなたの名前を入力してください')
+# 衛星の初期速度（vx, vy, vz） [m/s]
+initial_velocity_x = st.number_input("初期X速度 [m/s]", value=0)
+initial_velocity_y = st.number_input("初期Y速度 [m/s]", value=7500)
+initial_velocity_z = st.number_input("初期Z速度 [m/s]", value=0)
 
-# ボタンを作成し、クリックされたらメッセージを表示
-if st.button('挨拶する'):
-    if user_input:  # 名前が入力されているかチェック
-        st.success(f'🌟 こんにちは、{user_input}さん! 🌟')  # メッセージをハイライト
-    else:
-        st.error('名前を入力してください。')  # エラーメッセージを表示
+# シミュレーションの時間範囲
+simulation_time = st.number_input("シミュレーション時間（秒）", value=86400)
 
-# スライダーを作成し、値を選択
-number = st.slider('好きな数字（10進数）を選んでください', 0, 100)
+# 地球の質量 [kg]
+earth_mass = 5.972e24
 
-# 補足メッセージ
-st.caption("十字キー（左右）でも調整できます。")
+# 衛星の質量 [kg]
+satellite_mass = 1000
 
-# 選択した数字を表示
-st.write(f'あなたが選んだ数字は「{number}」です。')
+def satellite_motion(t, state):
+    x, y, z, vx, vy, vz = state
+    r = np.sqrt(x**2 + y**2 + z**2)
+    gravitational_force = -earth_mass / r**3 * np.array([x, y, z])
+    dxdt = vx
+    dydt = vy
+    dzdt = vz
+    dvxdt = gravitational_force[0] / satellite_mass
+    dvydt = gravitational_force[1] / satellite_mass
+    dvzdt = gravitational_force[2] / satellite_mass
+    return [dxdt, dydt, dzdt, dvxdt, dvydt, dvzdt]
 
-# 選択した数値を2進数に変換
-binary_representation = bin(number)[2:]  # 'bin'関数で2進数に変換し、先頭の'0b'を取り除く
-st.info(f'🔢 10進数の「{number}」を2進数で表現すると「{binary_representation}」になります。 🔢')  # 2進数の表示をハイライト
+initial_state = [initial_position_x, initial_position_y, initial_position_z,
+                 initial_velocity_x, initial_velocity_y, initial_velocity_z]
+
+# 解を計算
+solution = solve_ivp(satellite_motion, (0, simulation_time), initial_state, t_eval=np.linspace(0, simulation_time, 1000))
+
+# 結果をプロット
+fig = plt.figure(figsize=(10, 6))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot(solution.y[0], solution.y[1], solution.y[2])
+ax.set_xlabel('X軸 [m]')
+ax.set_ylabel('Y軸 [m]')
+ax.set_zlabel('Z軸 [m]')
+ax.set_title('衛星の軌道')
+st.pyplot(fig)
