@@ -52,3 +52,4 @@ ax.set_ylabel('Y軸 [m]')
 ax.set_zlabel('Z軸 [m]')
 ax.set_title('衛星の軌道')
 st.pyplot(fig)
+
