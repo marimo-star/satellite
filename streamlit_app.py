@@ -1,59 +1,34 @@
-pip install pygame
-import pygame
-import sys
-from pygame.locals import *
-import random
+GPS BIIR-2  (PRN 13)    
+1 24876U 97035A   23041.68353357  .00000027  00000+0  00000+0 0  9998
+2 24876  55.5468 146.3758 0065839  52.4873 308.1231  2.00564062187432
+(...以下同じような形式のデータが続く...)
+>>> import skyfield.api
+# TLEを読み込む
+>>> sats = skyfield.api.load.tle_file("https://celestrak.org/NORAD/elements/gnss.txt", reload=True)
+# 衛星が何個含まれているか？
+>>> len(sats)
+156
+# 0番目の衛星をみてみる
+>>> sats[0]
+<EarthSatellite GPS BIIR-2  (PRN 13) catalog #24876 epoch 2023-01-26 17:25:39 UTC>
+>>> ts = skyfield.api.load.timescale()
+>>> sat = sats[0]
 
-# Pygameの初期化
-pygame.init()
+# 衛星の現在の位置を取得してみる
+>>> sat.at(ts.now())
+<Geocentric ICRS position and velocity at date t center=399 target=-124876>
 
-# 画面の幅と高さ
-WIDTH, HEIGHT = 800, 600
+# 座標を取得してみる
+>>> sat.at(ts.now()).position
+<Distance [-1.48650828e-04  2.47026029e-05  9.16709615e-05] au>
 
-# 画面の作成
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+# メートル単位で欲しい
+>>> sat.at(ts.now()).position.m
+array([-22229143.44338772,   3673091.13254689,  13733781.9073863 ])
 
-# タイトル
-pygame.display.set_caption("動く球体")
+# 速度も得られる
+>>> sat.velocity.m_per_s
+array([ 1611.64563397, -2842.84923151,  2128.79653024])
 
-# 色
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-
-# 球体の位置と速度
-ball_radius = 20
-ball_x = WIDTH // 2
-ball_y = HEIGHT // 2
-ball_speed_x = random.uniform(1, 5)
-ball_speed_y = random.uniform(1, 5)
-
-# ゲームループ
-while True:
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-
-    # 球体の位置を更新
-    ball_x += ball_speed_x
-    ball_y += ball_speed_y
-
-    # 画面外に出た場合、反射させる
-    if ball_x < 0 or ball_x > WIDTH:
-        ball_speed_x *= -1
-    if ball_y < 0 or ball_y > HEIGHT:
-        ball_speed_y *= -1
-
-    # 画面を白でクリア
-    screen.fill(WHITE)
-
-    # 球体を描画
-    pygame.draw.circle(screen, RED, (int(ball_x), int(ball_y)), ball_radius)
-
-    # 画面更新
-    pygame.display.update()
-
-    # フレームレートを制御
-    pygame.time.delay(20)
 
 
