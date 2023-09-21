@@ -56,3 +56,4 @@ while True:
     # フレームレートを制御
     pygame.time.delay(20)
 
+
