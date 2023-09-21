@@ -1,7 +1,6 @@
 GPS BIIR-2  (PRN 13)    
 1 24876U 97035A   23041.68353357  .00000027  00000+0  00000+0 0  9998
 2 24876  55.5468 146.3758 0065839  52.4873 308.1231  2.00564062187432
-(...以下同じような形式のデータが続く...)
 >>> import skyfield.api
 # TLEを読み込む
 >>> sats = skyfield.api.load.tle_file("https://celestrak.org/NORAD/elements/gnss.txt", reload=True)
