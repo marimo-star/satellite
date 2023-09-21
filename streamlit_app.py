@@ -1,54 +1,58 @@
-import streamlit as st
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
+pip install pygame
+import pygame
+import sys
+from pygame.locals import *
+import random
 
-# Streamlitアプリのタイトル
-st.title("宇宙デブリの軌道計算アプリ")
+# Pygameの初期化
+pygame.init()
 
-# 宇宙デブリの初期位置（x, y, z） [m]
-initial_position_x = st.number_input("初期X座標 [m]", value=100000)
-initial_position_y = st.number_input("初期Y座標 [m]", value=100000)
-initial_position_z = st.number_input("初期Z座標 [m]", value=0)
+# 画面の幅と高さ
+WIDTH, HEIGHT = 800, 600
 
-# 宇宙デブリの初期速度（vx, vy, vz） [m/s]
-initial_velocity_x = st.number_input("初期X速度 [m/s]", value=1000)
-initial_velocity_y = st.number_input("初期Y速度 [m/s]", value=0)
-initial_velocity_z = st.number_input("初期Z速度 [m/s]", value=0)
+# 画面の作成
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-# シミュレーションの時間範囲
-simulation_time = st.number_input("シミュレーション時間（秒）", value=86400)
+# タイトル
+pygame.display.set_caption("動く球体")
 
-# 地球の質量 [kg]
-earth_mass = 5.972e24
+# 色
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
 
-# 宇宙デブリの質量 [kg]（小さなデブリの場合、無視することが一般的）
-debris_mass = 1.0
+# 球体の位置と速度
+ball_radius = 20
+ball_x = WIDTH // 2
+ball_y = HEIGHT // 2
+ball_speed_x = random.uniform(1, 5)
+ball_speed_y = random.uniform(1, 5)
 
-def debris_motion(t, state):
-    x, y, z, vx, vy, vz = state
-    r = np.sqrt(x**2 + y**2 + z**2)
-    gravitational_force = -earth_mass / r**3 * np.array([x, y, z])
-    dxdt = vx
-    dydt = vy
-    dzdt = vz
-    dvxdt = gravitational_force[0] / debris_mass
-    dvydt = gravitational_force[1] / debris_mass
-    dvzdt = gravitational_force[2] / debris_mass
-    return [dxdt, dydt, dzdt, dvxdt, dvydt, dvzdt]
+# ゲームループ
+while True:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
 
-initial_state = [initial_position_x, initial_position_y, initial_position_z,
-                 initial_velocity_x, initial_velocity_y, initial_velocity_z]
+    # 球体の位置を更新
+    ball_x += ball_speed_x
+    ball_y += ball_speed_y
 
-# 解を計算
-solution = solve_ivp(debris_motion, (0, simulation_time), initial_state, t_eval=np.linspace(0, simulation_time, 1000))
+    # 画面外に出た場合、反射させる
+    if ball_x < 0 or ball_x > WIDTH:
+        ball_speed_x *= -1
+    if ball_y < 0 or ball_y > HEIGHT:
+        ball_speed_y *= -1
 
-# 結果をプロット
-fig = plt.figure(figsize=(10, 6))
-ax = fig.add_subplot(111, projection='3d')
-ax.plot(solution.y[0], solution.y[1], solution.y[2])
-ax.set_xlabel('X軸 [m]')
-ax.set_ylabel('Y軸 [m]')
-ax.set_zlabel('Z軸 [m]')
-ax.set_title('宇宙デブリの軌道')
-st.pyplot(fig)
+    # 画面を白でクリア
+    screen.fill(WHITE)
+
+    # 球体を描画
+    pygame.draw.circle(screen, RED, (int(ball_x), int(ball_y)), ball_radius)
+
+    # 画面更新
+    pygame.display.update()
+
+    # フレームレートを制御
+    pygame.time.delay(20)
+
